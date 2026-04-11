@@ -12,8 +12,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME_API: ${{ github.repository }}-api
   IMAGE_NAME_FRONTEND: ${{ github.repository }}-frontend
-  # Opt into Node.js 24 for actions (removes deprecation warning)
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-push:
@@ -21,8 +19,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      attestations: write
-      id-token: write
 
     steps:
       - name: Checkout repository
@@ -47,8 +43,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha,prefix=,suffix=,format=short
-            type=ref,event=tag
+            type=sha,format=short
 
       - name: Extract metadata for Frontend
         id: meta-frontend
@@ -59,8 +54,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha,prefix=,suffix=,format=short
-            type=ref,event=tag
+            type=sha,format=short
 
       - name: Build and push API image
         id: push-api
@@ -73,7 +67,6 @@ jobs:
           labels: ${{ steps.meta-api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
 
       - name: Build and push Frontend image
         id: push-frontend
@@ -86,21 +79,6 @@ jobs:
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
-
-      - name: Generate API artifact attestation
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}
-          subject-digest: ${{ steps.push-api.outputs.digest }}
-          push-to-registry: true
-
-      - name: Generate Frontend artifact attestation
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
-          subject-digest: ${{ steps.push-frontend.outputs.digest }}
-          push-to-registry: true
 
       - name: Summarize pushed images
         run: |
