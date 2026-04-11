@@ -16,10 +16,14 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 # Copy all package files for workspace install
 COPY package*.json ./
-COPY packages/shared ./packages/shared
+COPY packages/shared/package*.json ./packages/shared/
 COPY apps/api/package*.json ./apps/api/
 # Install all workspace dependencies (this will include express-rate-limit)
 RUN npm ci --workspaces --if-present
+# Copy the built shared package from shared-builder stage
+COPY --from=shared-builder /app/packages/shared/dist ./packages/shared/dist
+# Copy source files
+COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 RUN npm run build --workspace=@frostapp/api
 
