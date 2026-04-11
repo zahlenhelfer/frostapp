@@ -126,6 +126,18 @@ docker-compose -f docker-compose.ghcr.yml up -d
 - ✅ **GitHub Container Registry** - Images published to GHCR
 - ✅ **Multi-architecture** - Supports linux/amd64 and linux/arm64
 - ✅ **Semantic Versioning** - Automatic tagging (v1.0.0, 1.0, 1)
+- ✅ **SBOM Generation** - CycloneDX and SPDX formats on every release
+
+### SBOM (Software Bill of Materials)
+
+On every release, SBOMs are automatically generated and attached to the GitHub Release:
+
+| Component | CycloneDX | SPDX |
+|-----------|-----------|------|
+| API | `apps/api/sbom/sbom.cyclonedx.json` | `apps/api/sbom/sbom.spdx.json` |
+| Frontend | `apps/frontend/sbom/sbom.cyclonedx.json` | `apps/frontend/sbom/sbom.spdx.json` |
+
+Access SBOMs from the [Releases](https://github.com/zahlenhelfer/frostapp/releases) page.
 
 ## Tech Stack
 
