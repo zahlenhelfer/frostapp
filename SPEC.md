@@ -206,9 +206,21 @@ docker-compose up -d
 ## CI/CD
 
 - ✅ GitHub Actions workflow for automated Docker builds on releases
-- ✅ Multi-architecture support (linux/amd64, linux/arm64)
 - ✅ Images pushed to GitHub Container Registry (ghcr.io)
+- ✅ SBOM generation (CycloneDX and SPDX formats) for both images
+- ✅ GitHub Releases with SBOMs attached
 - Separate images for API (`ghcr.io/zahlenhelfer/frostapp-api`) and Frontend (`ghcr.io/zahlenhelfer/frostapp-frontend`)
+
+### SBOM (Software Bill of Materials)
+
+On every release, SBOMs are automatically generated and attached to the GitHub Release:
+
+| File | Location | Format |
+|------|----------|--------|
+| API SBOM | `apps/api/sbom/sbom.cyclonedx.json` | CycloneDX |
+| API SBOM | `apps/api/sbom/sbom.spdx.json` | SPDX |
+| Frontend SBOM | `apps/frontend/sbom/sbom.cyclonedx.json` | CycloneDX |
+| Frontend SBOM | `apps/frontend/sbom/sbom.spdx.json` | SPDX |
 
 ### Using Published Images
 
@@ -216,11 +228,11 @@ docker-compose up -d
 # docker-compose.yml with published images
 services:
   api:
-    image: ghcr.io/zahlenhelfer/frostapp-api:v1.0.0
+    image: ghcr.io/zahlenhelfer/frostapp-api:v1.0.6
     # ... rest of config
 
   frontend:
-    image: ghcr.io/zahlenhelfer/frostapp/frontend:v1.0.0
+    image: ghcr.io/zahlenhelfer/frostapp-frontend:v1.0.6
     # ... rest of config
 ```
 
@@ -232,8 +244,11 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The workflow will automatically build and push images with tags:
-- `v1.0.0` (full version)
-- `1.0` (minor version)
-- `1` (major version)
-- `<short-sha>` (git commit sha)
+The workflow will automatically:
+1. Build and push Docker images with tags:
+   - `v1.0.0` (full version)
+   - `1.0` (minor version)
+   - `1` (major version)
+   - `<short-sha>` (git commit sha)
+2. Generate SBOMs (CycloneDX and SPDX formats)
+3. Create a GitHub Release with SBOMs attached
