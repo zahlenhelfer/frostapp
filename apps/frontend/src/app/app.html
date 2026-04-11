@@ -1,9 +1,47 @@
 <mat-sidenav-container class="sidenav-container">
+  <!-- Side Navigation Menu -->
+  <mat-sidenav 
+    #sidenav 
+    [opened]="menuOpen()" 
+    (closed)="closeMenu()"
+    mode="over" 
+    position="start"
+    class="sidenav"
+  >
+    <mat-toolbar color="primary">
+      <span>{{ i18n.translate('nav.menu') }}</span>
+    </mat-toolbar>
+    
+    <mat-nav-list>
+      <a mat-list-item routerLink="/" (click)="closeMenu()">
+        <mat-icon matListItemIcon>kitchen</mat-icon>
+        <span matListItemTitle>{{ i18n.translate('app.title') }}</span>
+      </a>
+      
+      <mat-divider></mat-divider>
+      
+      <a mat-list-item routerLink="/settings" (click)="closeMenu()">
+        <mat-icon matListItemIcon>settings</mat-icon>
+        <span matListItemTitle>{{ i18n.translate('nav.settings') }}</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
   <mat-sidenav-content>
     <mat-toolbar color="primary" class="app-toolbar">
+      <button 
+        mat-icon-button 
+        (click)="toggleMenu()"
+        [attr.aria-label]="i18n.translate('nav.menu')"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+      
       <mat-icon>kitchen</mat-icon>
       <span class="toolbar-title">{{ i18n.translate('app.title') }}</span>
+      
       <span class="toolbar-spacer"></span>
+      
       <app-sync-indicator />
       <app-language-switcher />
     </mat-toolbar>

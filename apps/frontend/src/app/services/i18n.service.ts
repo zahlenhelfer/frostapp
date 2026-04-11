@@ -55,6 +55,12 @@ const TRANSLATIONS: Record<Language, Translations> = {
     'sync.syncingTooltip': 'Synchronisiere...',
     'sync.pendingTooltip': 'Klicken zum Synchronisieren',
     'sync.onlineTooltip': 'Online - Alle Daten synchronisiert',
+    'settings.title': 'Einstellungen',
+    'settings.subtitle': 'App-Einstellungen und Informationen',
+    'settings.version': 'Version',
+    'settings.language': 'Sprache',
+    'nav.settings': 'Einstellungen',
+    'nav.menu': 'Menü',
   },
   en: {
     'app.title': 'FrostApp',
@@ -104,6 +110,12 @@ const TRANSLATIONS: Record<Language, Translations> = {
     'sync.syncingTooltip': 'Syncing...',
     'sync.pendingTooltip': 'Click to sync',
     'sync.onlineTooltip': 'Online - All data synced',
+    'settings.title': 'Settings',
+    'settings.subtitle': 'App settings and information',
+    'settings.version': 'Version',
+    'settings.language': 'Language',
+    'nav.settings': 'Settings',
+    'nav.menu': 'Menu',
   },
 };
 
