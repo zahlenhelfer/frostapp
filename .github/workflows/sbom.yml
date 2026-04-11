@@ -1,0 +1,60 @@
+name: Generate SBOM
+
+on:
+  push:
+    paths-ignore:
+      - '*.md'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_API: ${{ github.repository }}-api
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}-frontend
+
+jobs:
+  generate-sbom:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate SBOMs from package-lock.json
+        run: |
+          mkdir -p apps/api/sbom apps/frontend/sbom
+          echo "Scanning project dependencies from package-lock.json..."
+          # In a monorepo with workspaces, we scan the root package-lock.json
+          # which contains all dependencies for all workspaces
+          syft package-lock.json \
+            -o cyclonedx-json=apps/api/sbom/sbom.cyclonedx.json \
+            -o spdx-json=apps/api/sbom/sbom.spdx.json
+          # Copy the same SBOM to frontend (dependencies are shared in monorepo)
+          cp apps/api/sbom/sbom.cyclonedx.json apps/frontend/sbom/sbom.cyclonedx.json
+          cp apps/api/sbom/sbom.spdx.json apps/frontend/sbom/sbom.spdx.json
+          echo "SBOMs generated for API and Frontend"
+
+      - name: Upload SBOMs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sboms-${{ github.sha }}
+          path: |
+            apps/api/sbom/
+            apps/frontend/sbom/
+          retention-days: 90
+
+      - name: Summarize SBOM generation
+        run: |
+          echo "## 📦 SBOMs Generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- API: CycloneDX + SPDX" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: CycloneDX + SPDX" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Commit" >> $GITHUB_STEP_SUMMARY
+          echo "- SHA: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Ref: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY

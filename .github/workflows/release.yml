@@ -27,9 +27,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Install Syft
-        uses: anchore/sbom-action/download-syft@v0
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -59,29 +56,6 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,format=short
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate SBOMs
-        run: |
-          mkdir -p apps/api/sbom apps/frontend/sbom
-          echo "Scanning project dependencies from package-lock.json..."
-          # In a monorepo with workspaces, we scan the root package-lock.json
-          # which contains all dependencies for all workspaces
-          syft package-lock.json \
-            -o cyclonedx-json=apps/api/sbom/sbom.cyclonedx.json \
-            -o spdx-json=apps/api/sbom/sbom.spdx.json
-          # Copy the same SBOM to frontend (dependencies are shared in monorepo)
-          cp apps/api/sbom/sbom.cyclonedx.json apps/frontend/sbom/sbom.cyclonedx.json
-          cp apps/api/sbom/sbom.spdx.json apps/frontend/sbom/sbom.spdx.json
-          echo "SBOMs generated for API and Frontend"
-
       - name: Build and push API image
         id: push-api
         uses: docker/build-push-action@v6
@@ -108,24 +82,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Upload SBOMs as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sboms-${{ github.ref_name }}
-          path: |
-            apps/api/sbom/
-            apps/frontend/sbom/
-          retention-days: 90
-
-      - name: Create GitHub Release with SBOMs
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            apps/api/sbom/*.json
-            apps/frontend/sbom/*.json
-          generate_release_notes: true
-          name: Release ${{ github.ref_name }}
-
       - name: Summarize pushed images
         run: |
           echo "## 🐳 Docker Images Published" >> $GITHUB_STEP_SUMMARY
@@ -137,10 +93,6 @@ jobs:
           echo "### Frontend Image" >> $GITHUB_STEP_SUMMARY
           echo "- Image: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- Digest: \`${{ steps.push-frontend.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### SBOMs Generated" >> $GITHUB_STEP_SUMMARY
-          echo "- API: CycloneDX + SPDX" >> $GITHUB_STEP_SUMMARY
-          echo "- Frontend: CycloneDX + SPDX" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Tags" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
