@@ -182,7 +182,7 @@ git push origin v1.0.0
 ```yaml
 services:
   api:
-    image: ghcr.io/zahlenhelfer/frostapp-api:v1.0.5
+    image: ghcr.io/zahlenhelfer/frostapp-api:v1.0.6
     container_name: frostapp-api
     ports:
       - "3000:3000"
@@ -195,7 +195,7 @@ services:
       - frostapp-data:/app/data
 
   frontend:
-    image: ghcr.io/zahlenhelfer/frostapp-frontend:v1.0.5
+    image: ghcr.io/zahlenhelfer/frostapp-frontend:v1.0.6
     container_name: frostapp-frontend
     ports:
       - "8080:80"
