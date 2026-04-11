@@ -1,9 +1,6 @@
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: api
+    image: ghcr.io/zahlenhelfer/frostapp-api:latest
     container_name: frostapp-api
     ports:
       - "3000:3000"
@@ -22,10 +19,7 @@ services:
       start_period: 10s
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: frontend
+    image: ghcr.io/zahlenhelfer/frostapp-frontend:latest
     container_name: frostapp-frontend
     ports:
       - "8080:80"
