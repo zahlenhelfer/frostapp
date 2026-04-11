@@ -203,6 +203,37 @@ docker-compose up -d
 - Safari
 - Mobile browsers with IndexedDB support
 
-# new feature
+## CI/CD
 
-<!-- Add new features here -->
+- ✅ GitHub Actions workflow for automated Docker builds on releases
+- ✅ Multi-architecture support (linux/amd64, linux/arm64)
+- ✅ Images pushed to GitHub Container Registry (ghcr.io)
+- Separate images for API (`ghcr.io/zahlenhelfer/frostapp-api`) and Frontend (`ghcr.io/zahlenhelfer/frostapp-frontend`)
+
+### Using Published Images
+
+```yaml
+# docker-compose.yml with published images
+services:
+  api:
+    image: ghcr.io/zahlenhelfer/frostapp-api:v1.0.0
+    # ... rest of config
+
+  frontend:
+    image: ghcr.io/zahlenhelfer/frostapp/frontend:v1.0.0
+    # ... rest of config
+```
+
+### Creating a Release
+
+```bash
+# Tag and push to trigger the workflow
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow will automatically build and push images with tags:
+- `v1.0.0` (full version)
+- `1.0` (minor version)
+- `1` (major version)
+- `<short-sha>` (git commit sha)
