@@ -1,0 +1,47 @@
+export interface FrostItem {
+  id: string;
+  name: string;
+  depositDate: string; // ISO date string
+}
+
+export interface Shelf {
+  id: string;
+  name: string;
+  items: FrostItem[];
+}
+
+export interface Fridge {
+  id: string;
+  name: string;
+  shelfCount: number;
+  shelves: Shelf[];
+}
+
+export interface CreateFridgeRequest {
+  name: string;
+  shelfCount: number;
+}
+
+export interface UpdateFridgeRequest {
+  name?: string;
+  shelfCount?: number;
+}
+
+export interface CreateItemRequest {
+  name: string;
+  depositDate: string;
+}
+
+export interface UpdateItemRequest {
+  name?: string;
+  depositDate?: string;
+}
+
+export interface UpdateShelfRequest {
+  name: string;
+}
+
+export interface ApiError {
+  error: string;
+  message: string;
+}

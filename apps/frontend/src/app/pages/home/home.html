@@ -1,0 +1,42 @@
+<div class="home-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title i18n>Welcome to FrostApp</mat-card-title>
+      <mat-card-subtitle i18n>Angular 21 + Material + SignalStore Demo</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p i18n>
+        This application demonstrates modern Angular architecture using:
+      </p>
+      <ul>
+        <li i18n>Standalone components (no NgModules)</li>
+        <li i18n>Signal-based state management with NgRx SignalStore</li>
+        <li i18n><code>inject()</code> for dependency injection</li>
+        <li i18n>OnPush change detection</li>
+        <li i18n>Angular Material UI components</li>
+        <li i18n>Angular i18n (@angular/localize)</li>
+      </ul>
+
+      <div class="state-demo">
+        <h3 i18n>Current State</h3>
+        <p>
+          <strong i18n>Sidebar Open:</strong> {{ store.isSidebarOpen() ? 'Yes' : 'No' }}
+        </p>
+        <p>
+          <strong i18n>Is Loading:</strong> {{ store.isLoading() ? 'Yes' : 'No' }}
+        </p>
+        <p>
+          <strong i18n>Has Error:</strong> {{ store.hasError() ? 'Yes' : 'No' }}
+        </p>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="simulateLoading()" i18n>
+        Simulate Loading
+      </button>
+      <button mat-raised-button color="warn" (click)="simulateError()" i18n>
+        Simulate Error
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

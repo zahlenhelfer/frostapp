@@ -1,0 +1,48 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    container_name: frostapp-api
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+    volumes:
+      - frostapp-data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    container_name: frostapp-frontend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  # Combined single-container deployment (alternative)
+  # Uncomment if you want both in one container
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.combined
+  #   container_name: frostapp
+  #   ports:
+  #     - "8080:80"
+  #   restart: unless-stopped
+
+volumes:
+  frostapp-data:
+    driver: local

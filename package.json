@@ -1,0 +1,21 @@
+{
+  "name": "frostapp",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@frostapp/shared && npm run build --workspace=@frostapp/api && npm run build --workspace=@frostapp/frontend",
+    "dev": "concurrently -n \"API,WEB\" -c \"blue,green\" \"npm run dev:api\" \"npm run dev:frontend\"",
+    "dev:api": "npm run dev --workspace=@frostapp/api",
+    "dev:frontend": "npm run start --workspace=@frostapp/frontend",
+    "start": "npm run start --workspace=@frostapp/api",
+    "test": "npm run test --workspaces",
+    "clean": "npm run clean --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
