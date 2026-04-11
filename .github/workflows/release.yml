@@ -89,14 +89,14 @@ jobs:
       - name: Generate API artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ${{ env.IMAGE_NAME_API }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}
           subject-digest: ${{ steps.push-api.outputs.digest }}
           push-to-registry: true
 
       - name: Generate Frontend artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ${{ env.IMAGE_NAME_FRONTEND }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
           subject-digest: ${{ steps.push-frontend.outputs.digest }}
           push-to-registry: true
 
