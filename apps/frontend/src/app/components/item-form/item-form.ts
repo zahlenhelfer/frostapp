@@ -6,15 +6,30 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, NativeDateAdapter } from '@angular/material/core';
 import type { FrostItem } from '@frostapp/shared';
 import { I18nService } from '../../services/i18n.service';
+import { QrCodeDialogComponent } from '../qr-code-dialog/qr-code-dialog';
+
+// German date format: DD.MM.YYYY
+const GERMAN_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD.MM.YYYY',
+  },
+  display: {
+    dateInput: 'DD.MM.YYYY',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'LL',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 export interface ItemFormData {
   item?: FrostItem;
@@ -25,7 +40,11 @@ export interface ItemFormData {
 @Component({
   selector: 'app-item-form',
   standalone: true,
-  providers: [provideNativeDateAdapter()],
+  providers: [
+    { provide: DateAdapter, useClass: NativeDateAdapter },
+    { provide: MAT_DATE_LOCALE, useValue: 'de-DE' },
+    { provide: MAT_DATE_FORMATS, useValue: GERMAN_DATE_FORMATS },
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -35,6 +54,7 @@ export interface ItemFormData {
     MatButtonModule,
     MatDatepickerModule,
     MatCheckboxModule,
+    MatIconModule,
   ],
   template: `
     <h2 mat-dialog-title>
@@ -64,7 +84,16 @@ export interface ItemFormData {
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
 
-        @if (!data.item) {
+        @if (data.item) {
+          <button
+            type="button"
+            mat-raised-button
+            (click)="showQrCode()"
+          >
+            <mat-icon>qr_code</mat-icon>
+            {{ i18n.translate('item.showQrCode') }}
+          </button>
+        } @else {
           <mat-checkbox formControlName="generateQrCode" color="primary">
             {{ i18n.translate('item.generateQrCode') }}
           </mat-checkbox>
@@ -111,6 +140,7 @@ export class ItemFormComponent {
       Validators.required,
     ],
     generateQrCode: [false],
+    showQrCode: [false],
   });
 
   onSubmit(): void {
@@ -123,11 +153,27 @@ export class ItemFormComponent {
         ...value, 
         depositDate: date,
         generateQrCode: !this.data.item && value.generateQrCode,
+        showQrCode: !!this.data.item && value.showQrCode,
       });
     }
   }
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  showQrCode(): void {
+    if (!this.data.item || !this.data.fridgeId || !this.data.shelfId) return;
+    
+    const dialog = inject(MatDialog);
+    dialog.open(QrCodeDialogComponent, {
+      width: '400px',
+      data: {
+        itemId: this.data.item.id,
+        itemName: this.form.get('name')?.value ?? this.data.item.name,
+        fridgeId: this.data.fridgeId,
+        shelfId: this.data.shelfId,
+      },
+    });
   }
 }

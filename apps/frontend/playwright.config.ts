@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
   },
   projects: [
@@ -22,8 +22,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run start',
-    url: 'http://localhost:4200',
+    command: 'docker compose up -d',
+    url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });

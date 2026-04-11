@@ -7,6 +7,7 @@ FrostApp is a full-stack monorepo for managing freezer/fridge contents with a RE
 always try to build the containers after implementing new featrures.
 always try to start the compose stack.
 if you implemented a feature from the "new feature" chapter, move it out of this chapter
+if you tag a new version for git, always update the application version in the frontend, too.
 
 ## Architecture
 
@@ -245,6 +246,7 @@ git push origin v1.0.0
 ```
 
 The workflow will automatically:
+
 1. Build and push Docker images with tags:
    - `v1.0.0` (full version)
    - `1.0` (minor version)

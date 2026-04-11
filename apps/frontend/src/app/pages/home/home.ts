@@ -84,9 +84,7 @@ export class HomePage implements OnInit {
   selectedShelfId = this.store.selectedShelfId;
   isOffline = this.networkStatus.offline;
 
-  ngOnInit(): void {
-    this.store.loadFridges();
-    
+  constructor() {
     // Show sync status messages
     effect(() => {
       const status = this.syncService.syncStatus();
@@ -94,6 +92,10 @@ export class HomePage implements OnInit {
         this.snackBar.open(status.error, 'OK', { duration: 5000 });
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.store.loadFridges();
   }
 
   onSelectFridge(fridge: Fridge): void {
@@ -202,7 +204,7 @@ export class HomePage implements OnInit {
 
     const dialogRef = this.dialog.open(ItemFormComponent, {
       width: '400px',
-      data: { item },
+      data: { item, fridgeId: event.fridgeId, shelfId: event.shelfId },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -213,6 +215,19 @@ export class HomePage implements OnInit {
           itemId: event.itemId,
           updates: { name: result.name, depositDate: result.depositDate },
         });
+
+        // Show QR code dialog if requested
+        if (result.showQrCode) {
+          this.dialog.open(QrCodeDialogComponent, {
+            width: '400px',
+            data: {
+              itemId: event.itemId,
+              itemName: result.name,
+              fridgeId: event.fridgeId,
+              shelfId: event.shelfId,
+            },
+          });
+        }
       }
     });
   }
