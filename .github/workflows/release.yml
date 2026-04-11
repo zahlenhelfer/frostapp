@@ -82,6 +82,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Create GitHub Release
+        id: create-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          
+          # Build release notes
+          RELEASE_BODY="## 🐳 Docker Images
+
+          ### API Image
+          \`\`\`
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:${TAG_NAME}
+          \`\`\`
+          - Digest: \`${{ steps.push-api.outputs.digest }}\`
+          - Platforms: linux/amd64, linux/arm64
+
+          ### Frontend Image
+          \`\`\`
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${TAG_NAME}
+          \`\`\`
+          - Digest: \`${{ steps.push-frontend.outputs.digest }}\`
+          - Platforms: linux/amd64, linux/arm64
+
+          ## Usage
+
+          Pull the images:
+          \`\`\`bash
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:${TAG_NAME}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${TAG_NAME}
+          \`\`\`"
+
+          # Create the release
+          gh release create "$TAG_NAME" \
+            --title "$TAG_NAME" \
+            --notes "$RELEASE_BODY" \
+            --generate-notes
+
+          echo "release_url=$(gh release view "$TAG_NAME" --json url -q .url)" >> $GITHUB_OUTPUT
+
       - name: Summarize pushed images
         run: |
           echo "## 🐳 Docker Images Published" >> $GITHUB_STEP_SUMMARY
@@ -98,3 +138,6 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.meta-api.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### GitHub Release" >> $GITHUB_STEP_SUMMARY
+          echo "- URL: ${{ steps.create-release.outputs.release_url }}" >> $GITHUB_STEP_SUMMARY
