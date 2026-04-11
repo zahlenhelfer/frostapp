@@ -1,0 +1,45 @@
+# GitHub MCP Server Configuration for FrostApp
+# 
+# This file configures the Model Context Protocol (MCP) server for GitHub
+# to enable AI assistants to interact with this repository.
+#
+# Setup Instructions:
+# 1. Create a GitHub Personal Access Token at:
+#    https://github.com/settings/tokens
+#    Required scopes: repo, read:org, read:user, read:discussion
+#
+# 2. Set the token as environment variable:
+#    export GITHUB_TOKEN="your_token_here"
+#
+# 3. For Cursor IDE: Configuration is in .cursor/mcp.json
+#    For Claude Desktop: Add to claude_desktop_config.json:
+#    {
+#      "mcpServers": {
+#        "github": {
+#          "command": "npx",
+#          "args": ["-y", "@modelcontextprotocol/server-github"],
+#          "env": {
+#            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+#          }
+#        }
+#      }
+#    }
+#
+# Available Tools:
+# - search_code: Search code across repositories
+# - search_issues: Search issues and PRs
+# - create_issue: Create a new issue
+# - create_pull_request: Create a new pull request
+# - get_issue: Get details of a specific issue
+# - update_issue: Update an existing issue
+# - add_issue_comment: Add a comment to an issue
+# - list_commits: List commits in a repository
+# - get_file_contents: Get contents of a file
+# - push_files: Push multiple files in a single commit
+# - create_branch: Create a new branch
+# - list_branches: List branches in a repository
+# - search_repositories: Search for repositories
+#
+# Repository Info:
+# - Owner: zahlenhelfer
+# - Repository: frostapp

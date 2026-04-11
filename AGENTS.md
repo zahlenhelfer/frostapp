@@ -13,9 +13,62 @@
 | **Backend** | Express.js 4.21.0 (Node.js) |
 | **State Management** | NgRx SignalStore |
 | **UI Library** | Angular Material |
-| **Storage** | In-memory (backend), IndexedDB (frontend) |
+| **Storage** | SQLite (backend), IndexedDB (frontend) |
 | **Container** | Docker + Docker Compose |
 | **Web Server** | Nginx (production) |
+| **AI Integration** | GitHub MCP Server |
+
+## GitHub MCP Server
+
+This project includes GitHub MCP (Model Context Protocol) server configuration for AI assistants to interact with the repository.
+
+### Configuration Files
+
+- `.cursor/mcp.json` - Cursor IDE MCP configuration
+- `mcp.json` - General MCP configuration
+- `.github/mcp.yml` - Documentation and setup guide
+
+### Setup
+
+1. **Create GitHub Personal Access Token:**
+   - Go to: https://github.com/settings/tokens
+   - Required scopes: `repo`, `read:org`, `read:user`
+   - Generate and copy the token
+
+2. **Set Environment Variable:**
+   ```bash
+   export GITHUB_TOKEN="ghp_your_token_here"
+   ```
+
+3. **For Cursor IDE:** The configuration is already in `.cursor/mcp.json`
+
+4. **For Claude Desktop:** Add to `claude_desktop_config.json`:
+   ```json
+   {
+     "mcpServers": {
+       "github": {
+         "command": "npx",
+         "args": ["-y", "@modelcontextprotocol/server-github"],
+         "env": {
+           "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+         }
+       }
+     }
+   }
+   ```
+
+### Available MCP Tools
+
+- `search_code` - Search code across the repository
+- `search_issues` - Search issues and pull requests
+- `create_issue` - Create a new issue
+- `create_pull_request` - Create a pull request
+- `get_issue` / `update_issue` - Manage issues
+- `list_commits` - View commit history
+- `get_file_contents` - Read file contents
+- `create_branch` / `push_files` - Git operations
+
+---
 
 ## Security Implementation
 
