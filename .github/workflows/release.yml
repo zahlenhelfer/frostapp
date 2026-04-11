@@ -59,6 +59,29 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,format=short
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate SBOMs
+        run: |
+          mkdir -p apps/api/sbom apps/frontend/sbom
+          echo "Scanning project dependencies from package-lock.json..."
+          # In a monorepo with workspaces, we scan the root package-lock.json
+          # which contains all dependencies for all workspaces
+          syft package-lock.json \
+            -o cyclonedx-json=apps/api/sbom/sbom.cyclonedx.json \
+            -o spdx-json=apps/api/sbom/sbom.spdx.json
+          # Copy the same SBOM to frontend (dependencies are shared in monorepo)
+          cp apps/api/sbom/sbom.cyclonedx.json apps/frontend/sbom/sbom.cyclonedx.json
+          cp apps/api/sbom/sbom.spdx.json apps/frontend/sbom/sbom.spdx.json
+          echo "SBOMs generated for API and Frontend"
+
       - name: Build and push API image
         id: push-api
         uses: docker/build-push-action@v6
@@ -82,22 +105,6 @@ jobs:
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Generate SBOM for API
-        run: |
-          mkdir -p apps/api/sbom
-          syft ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:${{ github.ref_name }} \
-            -o cyclonedx-json=apps/api/sbom/sbom.cyclonedx.json \
-            -o spdx-json=apps/api/sbom/sbom.spdx.json
-          echo "API SBOM generated at apps/api/sbom/"
-
-      - name: Generate SBOM for Frontend
-        run: |
-          mkdir -p apps/frontend/sbom
-          syft ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.ref_name }} \
-            -o cyclonedx-json=apps/frontend/sbom/sbom.cyclonedx.json \
-            -o spdx-json=apps/frontend/sbom/sbom.spdx.json
-          echo "Frontend SBOM generated at apps/frontend/sbom/"
 
       - name: Upload SBOMs as artifacts
         uses: actions/upload-artifact@v4
