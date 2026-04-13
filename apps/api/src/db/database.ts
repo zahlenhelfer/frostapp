@@ -3,8 +3,14 @@ import { open, Database } from 'sqlite';
 import path from 'path';
 import fs from 'fs';
 
-// Ensure data directory exists
-const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+// Ensure data directory exists and prevent path traversal
+const RAW_DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+const resolvedDataDir = path.resolve(RAW_DATA_DIR);
+const allowedBase = path.resolve(process.cwd());
+if (!resolvedDataDir.startsWith(allowedBase + path.sep) && resolvedDataDir !== allowedBase) {
+  throw new Error('Invalid DATA_DIR: path traversal detected');
+}
+const DATA_DIR = resolvedDataDir;
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }

@@ -17,11 +17,8 @@ export function sanitizeString(input: unknown, maxLength: number = MAX_STRING_LE
     sanitized = sanitized.substring(0, maxLength);
   }
   
-  // Remove potentially dangerous characters for XSS prevention
-  sanitized = sanitized
-    .replace(/[<>]/g, '') // Remove < and > to prevent HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+=/gi, ''); // Remove event handlers
+  // For a JSON API, output encoding should happen on the client.
+  // We only trim and limit length here; do not attempt naive block-list sanitization.
   
   return sanitized;
 }
@@ -40,7 +37,7 @@ export function isValidDateString(str: string): boolean {
   }
   
   const date = new Date(str);
-  return !isNaN(date.getTime());
+  return !isNaN(date.getTime()) && date.toISOString().startsWith(str);
 }
 
 // Validate fridge name
@@ -70,8 +67,12 @@ export function validateFridgeName(name: unknown): { valid: boolean; error?: str
 
 // Validate shelf count
 export function validateShelfCount(count: unknown): { valid: boolean; error?: string; value?: number } {
+  if (typeof count === 'string' && !/^\d+$/.test(count)) {
+    return { valid: false, error: 'Shelf count must be a valid integer' };
+  }
+
   const numCount = typeof count === 'string' ? parseInt(count, 10) : count;
-  
+
   if (typeof numCount !== 'number' || isNaN(numCount)) {
     return { valid: false, error: 'Shelf count must be a number' };
   }
