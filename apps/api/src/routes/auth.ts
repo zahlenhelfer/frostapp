@@ -3,14 +3,28 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { getDatabase } from '../db/database.js';
 import { BadRequestError, UnauthorizedError } from '../utils/errors.js';
+import { getJwtSecret, strictLimiter } from '../middleware/security.js';
 import type { LoginRequest, RegisterRequest, AuthResponse, UserProfile } from '@frostapp/shared';
 
 const router = Router();
 
-const BCRYPT_ROUNDS = 10;
+const BCRYPT_ROUNDS = 12;
 
-function getJwtSecret(): string {
-  return process.env.JWT_SECRET || 'dev-jwt-secret-change-in-production';
+function validatePassword(password: string): { valid: boolean; error?: string } {
+  if (password.length < 8) {
+    return { valid: false, error: 'Password must be at least 8 characters' };
+  }
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-=+\[\];'\\/]/.test(password);
+  if (!hasUpperCase || !hasLowerCase || !hasDigit || !hasSpecial) {
+    return {
+      valid: false,
+      error: 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character',
+    };
+  }
+  return { valid: true };
 }
 
 // Helper to generate JWT
@@ -19,7 +33,7 @@ function generateToken(userId: string, username: string): string {
 }
 
 // POST /auth/register - Register a new user (allows only first user in production)
-router.post('/register', async (req, res, next) => {
+router.post('/register', strictLimiter, async (req, res, next) => {
   try {
     const { username, password } = req.body as RegisterRequest;
 
@@ -27,8 +41,12 @@ router.post('/register', async (req, res, next) => {
       throw new BadRequestError('Username must be at least 3 characters');
     }
 
-    if (!password || typeof password !== 'string' || password.length < 6) {
-      throw new BadRequestError('Password must be at least 6 characters');
+    if (!password || typeof password !== 'string') {
+      throw new BadRequestError('Password is required and must be a string');
+    }
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      throw new BadRequestError(passwordValidation.error!);
     }
 
     const db = getDatabase();
@@ -69,7 +87,7 @@ router.post('/register', async (req, res, next) => {
 });
 
 // POST /auth/login - Authenticate user and return JWT
-router.post('/login', async (req, res, next) => {
+router.post('/login', strictLimiter, async (req, res, next) => {
   try {
     const { username, password } = req.body as LoginRequest;
 

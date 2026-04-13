@@ -44,6 +44,8 @@ RUN npm run build --workspace=@frostapp/frontend
 FROM node:22-alpine AS api
 # Install sqlite dependencies
 RUN apk add --no-cache sqlite-libs ca-certificates
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 WORKDIR /app
 # Copy the built application
 COPY --from=api-builder /app/apps/api/dist ./dist
@@ -53,11 +55,12 @@ COPY --from=api-builder /app/node_modules ./node_modules
 COPY --from=api-builder /app/apps/api/node_modules ./apps/api/node_modules
 # Copy the shared package dist to the right location
 COPY --from=shared-builder /app/packages/shared/dist ./node_modules/@frostapp/shared
-# Create data directory for SQLite
-RUN mkdir -p /app/data
+# Create data directory for SQLite and set ownership
+RUN mkdir -p /app/data && chown -R nodejs:nodejs /app
 ENV DATA_DIR=/app/data
 # Set NODE_PATH to include both node_modules locations
 ENV NODE_PATH=/app/node_modules:/app/apps/api/node_modules
+USER nodejs
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
 

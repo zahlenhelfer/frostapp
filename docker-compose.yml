@@ -5,6 +5,11 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data
@@ -32,6 +37,11 @@ services:
     ports:
       - "8080:80"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
     depends_on:
       - api
 

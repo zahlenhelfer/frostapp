@@ -19,8 +19,13 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // Reject null origins in production; allow in development
+    if (!origin) {
+      if (isProduction) {
+        return callback(new Error('Not allowed by CORS'));
+      }
+      return callback(null, true);
+    }
     
     if (allowedOrigins.includes(origin) || !isProduction) {
       callback(null, true);
@@ -41,7 +46,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'", 'http://localhost:4200', 'http://localhost:8080'],
+      connectSrc: ["'self'", ...(isProduction ? [] : ['http://localhost:4200', 'http://localhost:8080'])],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -103,15 +108,15 @@ async function startServer() {
       console.log(`📦 Database: SQLite (persistent storage)`);
       console.log(`📚 API Documentation:`);
       console.log(`   GET    /health              - Health check (public)`);
-      console.log(`   GET    /api/fridges         - List all fridges (requires API key)`);
-      console.log(`   POST   /api/fridges         - Create a new fridge (requires API key)`);
-      console.log(`   GET    /api/fridges/:id     - Get a specific fridge (requires API key)`);
-      console.log(`   PATCH  /api/fridges/:id     - Update a fridge (requires API key)`);
-      console.log(`   DELETE /api/fridges/:id     - Delete a fridge (requires API key)`);
-      console.log(`   POST   /api/fridges/:id/shelves/:shelfId/items - Add item (requires API key)`);
-      console.log(`   PATCH  /api/fridges/:id/shelves/:shelfId/items/:itemId - Update item (requires API key)`);
-      console.log(`   DELETE /api/fridges/:id/shelves/:shelfId/items/:itemId - Delete item (requires API key)`);
-      console.log(`\n⚠️  IMPORTANT: All API endpoints (except /health) require X-API-Key header`);
+      console.log(`   GET    /api/fridges         - List all fridges (requires JWT)`);
+      console.log(`   POST   /api/fridges         - Create a new fridge (requires JWT)`);
+      console.log(`   GET    /api/fridges/:id     - Get a specific fridge (requires JWT)`);
+      console.log(`   PATCH  /api/fridges/:id     - Update a fridge (requires JWT)`);
+      console.log(`   DELETE /api/fridges/:id     - Delete a fridge (requires JWT)`);
+      console.log(`   POST   /api/fridges/:id/shelves/:shelfId/items - Add item (requires JWT)`);
+      console.log(`   PATCH  /api/fridges/:id/shelves/:shelfId/items/:itemId - Update item (requires JWT)`);
+      console.log(`   DELETE /api/fridges/:id/shelves/:shelfId/items/:itemId - Delete item (requires JWT)`);
+      console.log(`\n⚠️  IMPORTANT: All API endpoints (except /health) require Bearer JWT in Authorization header`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

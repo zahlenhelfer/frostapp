@@ -3,8 +3,15 @@ import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError } from '../utils/errors.js';
 
-function getJwtSecret(): string {
-  return process.env.JWT_SECRET || 'dev-jwt-secret-change-in-production';
+export function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is required in production');
+    }
+    return 'dev-jwt-secret-change-in-production';
+  }
+  return secret;
 }
 
 // Extend Express Request type to include user

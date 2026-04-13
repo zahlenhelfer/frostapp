@@ -3,6 +3,20 @@
 const MAX_STRING_LENGTH = 255;
 const MAX_NAME_LENGTH = 100;
 
+// Dangerous content patterns for XSS prevention
+const DANGEROUS_PATTERNS = [
+  /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i,
+  /\bon\w+\s*=/i,
+  /javascript:/i,
+  /<iframe/i,
+  /<object/i,
+  /<embed/i,
+];
+
+export function containsDangerousContent(input: string): boolean {
+  return DANGEROUS_PATTERNS.some((pattern) => pattern.test(input));
+}
+
 // Sanitize string input
 export function sanitizeString(input: unknown, maxLength: number = MAX_STRING_LENGTH): string | null {
   if (typeof input !== 'string') {
@@ -17,8 +31,10 @@ export function sanitizeString(input: unknown, maxLength: number = MAX_STRING_LE
     sanitized = sanitized.substring(0, maxLength);
   }
   
-  // For a JSON API, output encoding should happen on the client.
-  // We only trim and limit length here; do not attempt naive block-list sanitization.
+  // Reject dangerous content that could indicate XSS attempts
+  if (containsDangerousContent(sanitized)) {
+    return null;
+  }
   
   return sanitized;
 }
@@ -58,11 +74,11 @@ export function validateFridgeName(name: unknown): { valid: boolean; error?: str
   
   // Check for potentially malicious content
   const sanitized = sanitizeString(trimmed, MAX_NAME_LENGTH);
-  if (sanitized !== trimmed) {
+  if (sanitized === null) {
     return { valid: false, error: 'Name contains invalid characters' };
   }
   
-  return { valid: true, value: trimmed };
+  return { valid: true, value: sanitized };
 }
 
 // Validate shelf count
@@ -101,11 +117,11 @@ export function validateItemName(name: unknown): { valid: boolean; error?: strin
   }
   
   const sanitized = sanitizeString(trimmed, MAX_NAME_LENGTH);
-  if (sanitized !== trimmed) {
+  if (sanitized === null) {
     return { valid: false, error: 'Item name contains invalid characters' };
   }
   
-  return { valid: true, value: trimmed };
+  return { valid: true, value: sanitized };
 }
 
 // Validate deposit date

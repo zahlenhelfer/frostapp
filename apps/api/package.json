@@ -14,17 +14,19 @@
   "dependencies": {
     "@frostapp/shared": "*",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
