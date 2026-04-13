@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, effect, Injector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -78,23 +78,23 @@ export class HomePage implements OnInit {
   protected readonly i18n = inject(I18nService);
   protected readonly networkStatus = inject(NetworkStatusService);
   private readonly syncService = inject(SyncService);
+  private readonly injector = inject(Injector);
 
   fridges = this.store.fridges;
   selectedFridge = this.store.selectedFridge;
   selectedShelfId = this.store.selectedShelfId;
   isOffline = this.networkStatus.offline;
 
-  constructor() {
-    // Show sync status messages
-    effect(() => {
-      const status = this.syncService.syncStatus();
-      if (status.error && !status.isSyncing) {
-        this.snackBar.open(status.error, 'OK', { duration: 5000 });
-      }
-    });
-  }
-
   ngOnInit(): void {
+    // Show sync status messages
+    runInInjectionContext(this.injector, () => {
+      effect(() => {
+        const status = this.syncService.syncStatus();
+        if (status.error && !status.isSyncing) {
+          this.snackBar.open(status.error, 'OK', { duration: 5000 });
+        }
+      });
+    });
     this.store.loadFridges();
   }
 
