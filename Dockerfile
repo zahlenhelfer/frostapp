@@ -53,9 +53,8 @@ COPY --from=api-builder /app/node_modules ./node_modules
 COPY --from=api-builder /app/apps/api/node_modules ./apps/api/node_modules
 # Copy the shared package dist to the right location
 COPY --from=shared-builder /app/packages/shared/dist ./node_modules/@frostapp/shared
-# Create data directory for SQLite and ensure non-root ownership
-RUN mkdir -p /app/data && chown -R node:node /app
-USER node
+# Create data directory for SQLite
+RUN mkdir -p /app/data
 ENV DATA_DIR=/app/data
 # Set NODE_PATH to include both node_modules locations
 ENV NODE_PATH=/app/node_modules:/app/apps/api/node_modules
