@@ -26,6 +26,7 @@ COPY --from=shared-builder /app/packages/shared/dist ./packages/shared/dist
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 RUN npm run build --workspace=@frostapp/api
+RUN npm prune --omit=dev --workspaces
 
 # Stage 3: Build Frontend
 FROM node:22-alpine AS frontend-builder
@@ -52,8 +53,9 @@ COPY --from=api-builder /app/node_modules ./node_modules
 COPY --from=api-builder /app/apps/api/node_modules ./apps/api/node_modules
 # Copy the shared package dist to the right location
 COPY --from=shared-builder /app/packages/shared/dist ./node_modules/@frostapp/shared
-# Create data directory for SQLite
-RUN mkdir -p /app/data
+# Create data directory for SQLite and ensure non-root ownership
+RUN mkdir -p /app/data && chown -R node:node /app
+USER node
 ENV DATA_DIR=/app/data
 # Set NODE_PATH to include both node_modules locations
 ENV NODE_PATH=/app/node_modules:/app/apps/api/node_modules
@@ -64,6 +66,8 @@ CMD ["node", "dist/index.js"]
 FROM nginx:alpine AS frontend
 COPY --from=frontend-builder /app/apps/frontend/dist/frostapp/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN chown -R nginx:nginx /usr/share/nginx/html /etc/nginx/conf.d /var/cache/nginx /var/log/nginx /run
+USER nginx
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
