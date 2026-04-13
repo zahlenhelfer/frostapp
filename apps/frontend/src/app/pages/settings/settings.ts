@@ -8,8 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { RouterLink } from '@angular/router';
 import { I18nService } from '../../services/i18n.service';
 
-// Import version from package.json
-import { version } from '../../../../package.json';
+import { APP_VERSION } from '../../version';
 
 @Component({
   selector: 'app-settings',
@@ -87,7 +86,7 @@ import { version } from '../../../../package.json';
 })
 export class SettingsPage {
   protected readonly i18n = inject(I18nService);
-  protected readonly appVersion = version;
+  protected readonly appVersion = APP_VERSION;
   
   currentLanguage(): string {
     const lang = this.i18n.getCurrentLanguage();
