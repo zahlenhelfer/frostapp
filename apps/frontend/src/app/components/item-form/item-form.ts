@@ -11,7 +11,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { QRCodeComponent } from 'angularx-qrcode';
@@ -55,7 +54,6 @@ export interface ItemFormData {
     MatInputModule,
     MatButtonModule,
     MatDatepickerModule,
-    MatCheckboxModule,
     MatIconModule,
     MatTabsModule,
     QRCodeComponent,
@@ -90,11 +88,7 @@ export interface ItemFormData {
               <mat-datepicker #picker></mat-datepicker>
             </mat-form-field>
 
-            @if (!data.item) {
-              <mat-checkbox formControlName="generateQrCode" color="primary">
-                {{ i18n.translate('item.generateQrCode') }}
-              </mat-checkbox>
-            }
+
           </mat-dialog-content>
 
           <mat-dialog-actions align="end">
@@ -205,7 +199,6 @@ export class ItemFormComponent {
       this.data.item ? new Date(this.data.item.depositDate) : new Date(),
       Validators.required,
     ],
-    generateQrCode: [false],
     showQrCode: [false],
   });
 
@@ -218,7 +211,6 @@ export class ItemFormComponent {
       this.dialogRef.close({ 
         ...value, 
         depositDate: date,
-        generateQrCode: !this.data.item && value.generateQrCode,
         showQrCode: !!this.data.item && value.showQrCode,
       });
     }

@@ -168,29 +168,7 @@ export class HomePage implements OnInit {
           depositDate: result.depositDate,
         });
 
-        // Show QR code dialog if requested
-        if (result.generateQrCode) {
-          // Wait a bit for the item to be created and state updated
-          setTimeout(() => {
-            const fridge = this.fridges().find((f) => f.id === event.fridgeId);
-            const shelf = fridge?.shelves.find((s) => s.id === event.shelfId);
-            // Find the most recently added item (highest timestamp in ID or last in list)
-            const items = shelf?.items || [];
-            const newItem = items[items.length - 1];
-            
-            if (newItem && fridge && shelf) {
-              this.dialog.open(QrCodeDialogComponent, {
-                width: '400px',
-                data: {
-                  itemId: newItem.id,
-                  itemName: newItem.name,
-                  fridgeId: event.fridgeId,
-                  shelfId: event.shelfId,
-                },
-              });
-            }
-          }, 100);
-        }
+
       }
     });
   }
