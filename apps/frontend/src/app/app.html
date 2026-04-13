@@ -44,6 +44,12 @@
       
       <app-sync-indicator />
       <app-language-switcher />
+      
+      @if (isAuthenticated()) {
+        <button mat-icon-button (click)="logout()" [attr.aria-label]="i18n.translate('login.logout')">
+          <mat-icon>logout</mat-icon>
+        </button>
+      }
     </mat-toolbar>
 
     <main class="main-content">

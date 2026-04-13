@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { fridgeRouter } from './routes/fridges.js';
-import { authenticateApiKey, standardLimiter, securityLogger } from './middleware/security.js';
+import { authRouter } from './routes/auth.js';
+import { authenticateJwt, standardLimiter, securityLogger } from './middleware/security.js';
 import { formatErrorResponse } from './utils/errors.js';
 import { initDatabase, closeDatabase } from './db/database.js';
 
@@ -29,7 +30,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'X-API-Key', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Security: Helmet for security headers
@@ -60,13 +61,16 @@ app.use(securityLogger);
 // Security: Rate limiting
 app.use('/api', standardLimiter);
 
-// Security: API Key authentication for all API routes
-app.use('/api', authenticateApiKey);
+// Security: JWT authentication for all API routes
+app.use('/api', authenticateJwt);
 
 // Health check (public, no auth required)
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Auth Routes (public, no auth required)
+app.use('/auth', authRouter);
 
 // API Routes (protected by authentication)
 app.use('/api/fridges', fridgeRouter);
@@ -95,7 +99,7 @@ async function startServer() {
     app.listen(PORT, () => {
       console.log(`🚀 FrostApp API Server running on http://localhost:${PORT}`);
       console.log(`🔒 Environment: ${NODE_ENV}`);
-      console.log(`🛡️  Security features enabled: CORS, Helmet, Rate Limiting, API Key Auth`);
+      console.log(`🛡️  Security features enabled: CORS, Helmet, Rate Limiting, JWT Auth`);
       console.log(`📦 Database: SQLite (persistent storage)`);
       console.log(`📚 API Documentation:`);
       console.log(`   GET    /health              - Health check (public)`);

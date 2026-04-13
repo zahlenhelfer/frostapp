@@ -3,19 +3,25 @@ import request from 'supertest';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { authenticateApiKey, standardLimiter, securityLogger } from '../src/middleware/security.js';
+import { authenticateJwt, standardLimiter, securityLogger } from '../src/middleware/security.js';
 import { formatErrorResponse, BadRequestError, NotFoundError } from '../src/utils/errors.js';
 import { validateFridgeName, validateShelfCount, validateItemName, validateDepositDate, isValidUUID } from '../src/utils/validation.js';
 
-// Test API key
-const TEST_API_KEY = 'test-api-key-for-testing';
+import jwt from 'jsonwebtoken';
+
+const TEST_JWT_SECRET = 'test-jwt-secret-for-testing';
+process.env.JWT_SECRET = TEST_JWT_SECRET;
+
+function createTestToken(): string {
+  return jwt.sign({ userId: '1', username: 'testuser' }, TEST_JWT_SECRET, { expiresIn: '1h' });
+}
 
 // Create test app
 function createTestApp() {
   const app = express();
   
   // Set test environment
-  process.env.API_KEY = TEST_API_KEY;
+  process.env.JWT_SECRET = TEST_JWT_SECRET;
   process.env.NODE_ENV = 'test';
   
   // Security middleware
@@ -23,7 +29,7 @@ function createTestApp() {
     origin: ['http://localhost:4200', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-API-Key', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization']
   }));
   
   app.use(helmet());
@@ -31,7 +37,7 @@ function createTestApp() {
   app.use(securityLogger);
   
   // Auth middleware
-  app.use('/api', authenticateApiKey);
+  app.use('/api', authenticateJwt);
   
   // Test routes
   app.get('/health', (_req, res) => {
@@ -73,29 +79,29 @@ describe('Security Tests', () => {
       expect(response.body.status).toBe('ok');
     });
     
-    it('should reject API requests without API key', async () => {
+    it('should reject API requests without JWT token', async () => {
       const response = await request(app)
         .get('/api/test')
         .expect(401);
       
-      expect(response.body.error).toBe('Unauthorized');
-      expect(response.body.message).toContain('API key is required');
+      expect(response.body.error).toBe('UnauthorizedError');
+      expect(response.body.message).toContain('Authentication required');
     });
     
-    it('should reject API requests with invalid API key', async () => {
+    it('should reject API requests with invalid JWT token', async () => {
       const response = await request(app)
         .get('/api/test')
-        .set('X-API-Key', 'invalid-key')
-        .expect(403);
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(401);
       
-      expect(response.body.error).toBe('Forbidden');
-      expect(response.body.message).toContain('Invalid API key');
+      expect(response.body.error).toBe('UnauthorizedError');
+      expect(response.body.message).toContain('Invalid or expired token');
     });
     
-    it('should allow API requests with valid API key', async () => {
+    it('should allow API requests with valid JWT token', async () => {
       const response = await request(app)
         .get('/api/test')
-        .set('X-API-Key', TEST_API_KEY)
+        .set('Authorization', `Bearer ${createTestToken()}`)
         .expect(200);
       
       expect(response.body.message).toBe('success');
@@ -155,7 +161,7 @@ describe('Security Tests', () => {
       
       const response = await request(app)
         .post('/api/test')
-        .set('X-API-Key', TEST_API_KEY)
+        .set('Authorization', `Bearer ${createTestToken()}`)
         .send(largeBody)
         .expect(413); // Payload Too Large
     });
@@ -165,7 +171,7 @@ describe('Security Tests', () => {
       
       const response = await request(app)
         .post('/api/test')
-        .set('X-API-Key', TEST_API_KEY)
+        .set('Authorization', `Bearer ${createTestToken()}`)
         .send(smallBody)
         .expect(200);
       

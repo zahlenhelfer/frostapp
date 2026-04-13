@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import type { Fridge, FrostItem, CreateFridgeRequest, UpdateFridgeRequest, CreateItemRequest, UpdateItemRequest, UpdateShelfRequest } from '@frostapp/shared';
 
@@ -11,18 +11,6 @@ const API_BASE_URL = (typeof process !== 'undefined' && process?.env?.['API_BASE
   || (typeof window !== 'undefined' && (window as { ENV?: { API_URL?: string } }).ENV?.API_URL)
   || 'http://localhost:3000/api';
 
-// API Key from environment or localStorage for development
-function getApiKey(): string {
-  if (typeof window !== 'undefined') {
-    // Check localStorage first (for development)
-    const storedKey = localStorage.getItem('frostapp_api_key');
-    if (storedKey) return storedKey;
-  }
-  // Fallback to environment or default dev key
-  return (typeof process !== 'undefined' && process?.env?.['API_KEY']) 
-    || 'dev-api-key-change-in-production';
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -30,78 +18,55 @@ export class FridgeApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = API_BASE_URL;
 
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-API-Key': getApiKey()
-    });
-  }
-
   // Fridges
   getAllFridges(): Observable<Fridge[]> {
-    return this.http.get<Fridge[]>(`${this.baseUrl}/fridges`, { headers: this.getHeaders() });
+    return this.http.get<Fridge[]>(`${this.baseUrl}/fridges`);
   }
 
   getFridge(id: string): Observable<Fridge> {
-    return this.http.get<Fridge>(`${this.baseUrl}/fridges/${encodeURIComponent(id)}`, { headers: this.getHeaders() });
+    return this.http.get<Fridge>(`${this.baseUrl}/fridges/${encodeURIComponent(id)}`);
   }
 
   createFridge(data: CreateFridgeRequest): Observable<Fridge> {
-    return this.http.post<Fridge>(`${this.baseUrl}/fridges`, data, { headers: this.getHeaders() });
+    return this.http.post<Fridge>(`${this.baseUrl}/fridges`, data);
   }
 
   updateFridge(id: string, data: UpdateFridgeRequest): Observable<Fridge> {
-    return this.http.patch<Fridge>(`${this.baseUrl}/fridges/${encodeURIComponent(id)}`, data, { headers: this.getHeaders() });
+    return this.http.patch<Fridge>(`${this.baseUrl}/fridges/${encodeURIComponent(id)}`, data);
   }
 
   deleteFridge(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/fridges/${encodeURIComponent(id)}`, { headers: this.getHeaders() });
+    return this.http.delete<void>(`${this.baseUrl}/fridges/${encodeURIComponent(id)}`);
   }
 
   // Items
   addItem(fridgeId: string, shelfId: string, data: CreateItemRequest): Observable<FrostItem> {
     return this.http.post<FrostItem>(
-      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}/items`, 
-      data, 
-      { headers: this.getHeaders() }
+      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}/items`,
+      data
     );
   }
 
   updateItem(fridgeId: string, shelfId: string, itemId: string, data: UpdateItemRequest): Observable<FrostItem> {
     return this.http.patch<FrostItem>(
-      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}/items/${encodeURIComponent(itemId)}`, 
-      data, 
-      { headers: this.getHeaders() }
+      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}/items/${encodeURIComponent(itemId)}`,
+      data
     );
   }
 
   deleteItem(fridgeId: string, shelfId: string, itemId: string): Observable<void> {
     return this.http.delete<void>(
-      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}/items/${encodeURIComponent(itemId)}`, 
-      { headers: this.getHeaders() }
+      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}/items/${encodeURIComponent(itemId)}`
     );
   }
 
   // Shelves
   updateShelfName(fridgeId: string, shelfId: string, data: UpdateShelfRequest): Observable<{ id: string; name: string; items: FrostItem[] }> {
     return this.http.patch<{ id: string; name: string; items: FrostItem[] }>(
-      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}`, 
-      data, 
-      { headers: this.getHeaders() }
+      `${this.baseUrl}/fridges/${encodeURIComponent(fridgeId)}/shelves/${encodeURIComponent(shelfId)}`,
+      data
     );
   }
   
-  // Set API key for authentication
-  setApiKey(key: string): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('frostapp_api_key', key);
-    }
-  }
-  
-  // Clear API key
-  clearApiKey(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('frostapp_api_key');
-    }
-  }
+  // Legacy API key methods removed in favor of JWT authentication
 }

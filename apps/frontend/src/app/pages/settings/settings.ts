@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { RouterLink } from '@angular/router';
 import { I18nService } from '../../services/i18n.service';
+import { AuthStore } from '../../store/auth.store';
 
 import { APP_VERSION } from '../../version';
 
@@ -22,6 +23,7 @@ import { APP_VERSION } from '../../version';
     MatDividerModule,
     RouterLink,
   ],
+  host: { class: 'settings-page' },
   template: `
     <div class="settings-container">
       <mat-card>
@@ -54,6 +56,11 @@ import { APP_VERSION } from '../../version';
             <mat-icon>arrow_back</mat-icon>
             {{ i18n.translate('common.back') }}
           </button>
+          <span class="actions-spacer"></span>
+          <button mat-button color="warn" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            {{ i18n.translate('login.logout') }}
+          </button>
         </mat-card-actions>
       </mat-card>
     </div>
@@ -72,7 +79,11 @@ import { APP_VERSION } from '../../version';
     mat-card-header {
       margin-bottom: 16px;
     }
-    
+
+    .actions-spacer {
+      flex: 1 1 auto;
+    }
+
     [mat-card-avatar] {
       font-size: 40px;
       width: 40px;
@@ -86,10 +97,15 @@ import { APP_VERSION } from '../../version';
 })
 export class SettingsPage {
   protected readonly i18n = inject(I18nService);
+  protected readonly authStore = inject(AuthStore);
   protected readonly appVersion = APP_VERSION;
   
   currentLanguage(): string {
     const lang = this.i18n.getCurrentLanguage();
     return this.i18n.translate(`language.${lang === 'de' ? 'german' : 'english'}`);
+  }
+
+  logout(): void {
+    this.authStore.logout();
   }
 }

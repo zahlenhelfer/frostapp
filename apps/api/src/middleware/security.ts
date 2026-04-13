@@ -1,34 +1,45 @@
 import type { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
+import { UnauthorizedError } from '../utils/errors.js';
 
-// API Key authentication middleware
-export function authenticateApiKey(req: Request, res: Response, next: NextFunction): void {
-  // Skip authentication for health check endpoint
-  if (req.path === '/health') {
+function getJwtSecret(): string {
+  return process.env.JWT_SECRET || 'dev-jwt-secret-change-in-production';
+}
+
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: { userId: string; username: string };
+    }
+  }
+}
+
+// JWT authentication middleware
+export function authenticateJwt(req: Request, _res: Response, next: NextFunction): void {
+  // Skip authentication for health check endpoint and auth routes
+  if (req.path === '/health' || req.path.startsWith('/auth')) {
     next();
     return;
   }
 
-  const apiKey = req.headers['x-api-key'];
-  const validApiKey = process.env.API_KEY || 'dev-api-key-change-in-production';
+  const authHeader = req.headers.authorization;
 
-  if (!apiKey) {
-    res.status(401).json({ 
-      error: 'Unauthorized', 
-      message: 'API key is required. Provide it in the X-API-Key header.' 
-    });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    next(new UnauthorizedError('Authentication required. Provide a Bearer token in the Authorization header.'));
     return;
   }
 
-  if (apiKey !== validApiKey) {
-    res.status(403).json({ 
-      error: 'Forbidden', 
-      message: 'Invalid API key.' 
-    });
-    return;
-  }
+  const token = authHeader.slice(7);
 
-  next();
+  try {
+    const payload = jwt.verify(token, getJwtSecret()) as { userId: string; username: string };
+    req.user = payload;
+    next();
+  } catch {
+    next(new UnauthorizedError('Invalid or expired token.'));
+  }
 }
 
 // Rate limiting configurations
@@ -55,7 +66,7 @@ export const strictLimiter = rateLimit({
 });
 
 // Security event logger
-export function securityLogger(req: Request, res: Response, next: NextFunction): void {
+export function securityLogger(req: Request, _res: Response, next: NextFunction): void {
   const timestamp = new Date().toISOString();
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
   const method = req.method;

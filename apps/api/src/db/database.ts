@@ -60,6 +60,13 @@ export async function initDatabase(): Promise<Database<sqlite3.Database, sqlite3
       FOREIGN KEY (shelf_id) REFERENCES shelves(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_shelves_fridge_id ON shelves(fridge_id);
     CREATE INDEX IF NOT EXISTS idx_items_shelf_id ON items(shelf_id);
   `);

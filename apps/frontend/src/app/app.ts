@@ -10,6 +10,7 @@ import { LanguageSwitcherComponent } from './components/language-switcher/langua
 import { SyncIndicatorComponent } from './components/sync-indicator/sync-indicator';
 import { I18nService } from './services/i18n.service';
 import { FridgeStore } from './store/fridge.store';
+import { AuthStore } from './store/auth.store';
 
 @Component({
   selector: 'app-root',
@@ -33,9 +34,13 @@ import { FridgeStore } from './store/fridge.store';
 export class App implements OnInit {
   protected readonly i18n = inject(I18nService);
   private readonly store = inject(FridgeStore);
+  private readonly authStore = inject(AuthStore);
   protected readonly menuOpen = signal(false);
+  protected readonly isAuthenticated = this.authStore.isAuthenticated;
 
   ngOnInit(): void {
+    // Initialize auth state from stored token
+    this.authStore.initAuth();
     // Initialize store (network status, etc.)
     this.store.init();
   }
@@ -46,5 +51,10 @@ export class App implements OnInit {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  logout(): void {
+    this.closeMenu();
+    this.authStore.logout();
   }
 }
